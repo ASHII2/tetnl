@@ -1,0 +1,26 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Terraform
+    jobs:
+      - job: Terraform
+        steps:
+          - script: |
+              LATEST_VERSION=v3.2.4
+              curl -O -L "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${LATEST_VERSION}_amd64.deb"
+              sudo dpkg -i "tenv_${LATEST_VERSION}_amd64.deb"
+              tenv tf install
+              tenv tg install
+            displayName: 'Install'
+
+          - script: |
+              terragrunt run-all init
+              terragrunt run-all plan
+            displayName: 'Plan'
+            env:
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
